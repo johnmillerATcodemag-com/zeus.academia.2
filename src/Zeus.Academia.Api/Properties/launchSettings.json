@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Zeus.Academia.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55301;http://localhost:55302"
+    }
+  }
+}

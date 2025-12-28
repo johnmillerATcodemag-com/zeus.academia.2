@@ -21,10 +21,10 @@ Write-Host "📂 Working Directory: $projectRoot" -ForegroundColor Gray
 Write-Host ""
 
 # Configuration
-$apiPath = "C:\git\zeus.academia\src\Zeus.Academia.Api"
-$frontendPath = "C:\git\zeus.academia\src\Zeus.Academia.StudentPortal"
-$facultyDashboardPath = "C:\git\zeus.academia\src\Zeus.Academia.FacultyDashboard"
-$adminInterfacePath = "C:\git\zeus.academia\src\Zeus.Academia.AdminInterface"
+$apiPath = "C:\git\zeus\zeus.academia.2\src\Zeus.Academia.Api"
+$frontendPath = "C:\git\zeus\zeus.academia.2\src\Zeus.Academia.StudentPortal"
+$facultyDashboardPath = "C:\git\zeus\zeus.academia.2\src\Zeus.Academia.FacultyDashboard"
+$adminInterfacePath = "C:\git\zeus\zeus.academia.2\src\Zeus.Academia.AdminInterface"
 $apiPort = 5000
 $frontendPort = 5173
 $facultyDashboardPort = 5174
@@ -48,10 +48,10 @@ function Wait-ForService {
         [string]$ServiceName,
         [int]$TimeoutSeconds = 30
     )
-    
+
     Write-Host "⏳ Waiting for $ServiceName to start..." -ForegroundColor Yellow
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-    
+
     do {
         Start-Sleep -Seconds 2
         try {
@@ -63,7 +63,7 @@ function Wait-ForService {
             Write-Host "." -NoNewline -ForegroundColor Gray
         }
     } while ($stopwatch.Elapsed.TotalSeconds -lt $TimeoutSeconds)
-    
+
     Write-Host ""
     Write-Host "❌ $ServiceName failed to start within $TimeoutSeconds seconds" -ForegroundColor Red
     return $false
@@ -72,14 +72,14 @@ function Wait-ForService {
 # Function to kill processes using a specific port
 function Stop-ProcessOnPort {
     param([int]$Port)
-    
+
     $connections = netstat -ano | Select-String ":$Port\s"
     if ($connections) {
         Write-Host "⚠️ Port $Port is in use. Stopping existing processes..." -ForegroundColor Yellow
-        $pids = $connections | ForEach-Object { 
-            ($_ -split '\s+')[-1] 
+        $pids = $connections | ForEach-Object {
+            ($_ -split '\s+')[-1]
         } | Sort-Object -Unique
-        
+
         foreach ($processId in $pids) {
             try {
                 Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
@@ -172,7 +172,7 @@ Write-Host "========================" -ForegroundColor Cyan
 try {
     Write-Host "📂 Navigating to API directory..." -ForegroundColor Gray
     Push-Location $apiPath
-    
+
     Write-Host "🔨 Building API..." -ForegroundColor Yellow
     dotnet build --verbosity quiet | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -181,20 +181,20 @@ try {
         exit 1
     }
     Write-Host "✅ API build successful" -ForegroundColor Green
-    
+
     Write-Host "▶️ Starting API server..." -ForegroundColor Yellow
-    
+
     # Start API in background
     $apiJob = Start-Job -ScriptBlock {
         param($path)
         Set-Location $path
         dotnet run --urls "http://localhost:5000"
     } -ArgumentList $apiPath
-    
+
     Pop-Location
-    
+
     Write-Host "🔄 API Job ID: $($apiJob.Id)" -ForegroundColor Gray
-    
+
     if (-not $SkipHealthCheck) {
         $apiReady = Wait-ForService -Url "$apiUrl/health" -ServiceName "Backend API" -TimeoutSeconds $HealthCheckTimeout
         if (-not $apiReady) {
@@ -221,7 +221,7 @@ if (-not $FacultyOnly -and -not $AdminOnly) {
     try {
         Write-Host "📂 Navigating to student portal directory..." -ForegroundColor Gray
         Push-Location $frontendPath
-        
+
         # Check if node_modules exists
         if (-not (Test-Path "node_modules")) {
             Write-Host "📦 Installing dependencies..." -ForegroundColor Yellow
@@ -236,20 +236,20 @@ if (-not $FacultyOnly -and -not $AdminOnly) {
         else {
             Write-Host "✅ Dependencies already installed" -ForegroundColor Green
         }
-        
+
         Write-Host "▶️ Starting student portal server..." -ForegroundColor Yellow
-        
+
         # Start Student Portal in background
         $frontendJob = Start-Job -ScriptBlock {
             param($path)
             Set-Location $path
             npm run dev
         } -ArgumentList $frontendPath
-        
+
         Pop-Location
-        
+
         Write-Host "🔄 Student Portal Job ID: $($frontendJob.Id)" -ForegroundColor Gray
-        
+
         if (-not $SkipHealthCheck) {
             # Wait a bit for Vite to start
             Start-Sleep -Seconds 5
@@ -273,7 +273,7 @@ if (-not $StudentOnly -and -not $AdminOnly) {
     try {
         Write-Host "📂 Navigating to faculty dashboard directory..." -ForegroundColor Gray
         Push-Location $facultyDashboardPath
-        
+
         # Check if node_modules exists
         if (-not (Test-Path "node_modules")) {
             Write-Host "📦 Installing dependencies..." -ForegroundColor Yellow
@@ -288,20 +288,20 @@ if (-not $StudentOnly -and -not $AdminOnly) {
         else {
             Write-Host "✅ Dependencies already installed" -ForegroundColor Green
         }
-        
+
         Write-Host "▶️ Starting faculty dashboard server..." -ForegroundColor Yellow
-        
+
         # Start Faculty Dashboard in background
         $facultyJob = Start-Job -ScriptBlock {
             param($path)
             Set-Location $path
             npm run dev
         } -ArgumentList $facultyDashboardPath
-        
+
         Pop-Location
-        
+
         Write-Host "🔄 Faculty Dashboard Job ID: $($facultyJob.Id)" -ForegroundColor Gray
-        
+
         if (-not $SkipHealthCheck) {
             # Wait a bit for Vite to start
             Start-Sleep -Seconds 5
@@ -325,7 +325,7 @@ if ($AdminOnly -or (-not $StudentOnly -and -not $FacultyOnly)) {
     try {
         Write-Host "📂 Navigating to admin interface directory..." -ForegroundColor Gray
         Push-Location $adminInterfacePath
-        
+
         # Check if node_modules exists
         if (-not (Test-Path "node_modules")) {
             Write-Host "📦 Installing dependencies..." -ForegroundColor Yellow
@@ -340,20 +340,20 @@ if ($AdminOnly -or (-not $StudentOnly -and -not $FacultyOnly)) {
         else {
             Write-Host "✅ Dependencies already installed" -ForegroundColor Green
         }
-        
+
         Write-Host "▶️ Starting admin interface server..." -ForegroundColor Yellow
-        
+
         # Start Admin Interface in background
         $adminJob = Start-Job -ScriptBlock {
             param($path)
             Set-Location $path
             npm run dev
         } -ArgumentList $adminInterfacePath
-        
+
         Pop-Location
-        
+
         Write-Host "🔄 Admin Interface Job ID: $($adminJob.Id)" -ForegroundColor Gray
-        
+
         if (-not $SkipHealthCheck) {
             # Wait a bit for Vite to start
             Start-Sleep -Seconds 5
@@ -383,7 +383,7 @@ try {
     Write-Host "   📊 Status: $($health.status)" -ForegroundColor Cyan
     Write-Host "   🏷️ Service: $($health.service)" -ForegroundColor Cyan
     Write-Host "   📅 Version: $($health.version)" -ForegroundColor Cyan
-    
+
     # Test key endpoints
     Write-Host "   🔗 Key Endpoints:" -ForegroundColor Cyan
     Write-Host "      • API Info: $apiUrl/" -ForegroundColor White
@@ -498,7 +498,7 @@ if ($WaitForExit) {
         # Wait for user interrupt
         while ($true) {
             Start-Sleep -Seconds 1
-            
+
             # Check if any jobs are still running
             $runningJobs = $jobsHash.Values | Where-Object { $_ -is [System.Management.Automation.Job] -and $_.State -eq 'Running' }
             if ($runningJobs.Count -eq 0) {
@@ -531,7 +531,7 @@ if (-not $FacultyOnly -and -not $AdminOnly) { $serviceNames += "Student Portal" 
 if (-not $StudentOnly -and -not $AdminOnly) { $serviceNames += "Faculty Dashboard" }
 if ($AdminOnly -or (-not $StudentOnly -and -not $FacultyOnly)) { $serviceNames += "Admin Interface" }
 
-$serviceText = if ($serviceNames.Count -eq 2) { "$($serviceNames[0]) and $($serviceNames[1]) are" } 
+$serviceText = if ($serviceNames.Count -eq 2) { "$($serviceNames[0]) and $($serviceNames[1]) are" }
 elseif ($serviceNames.Count -eq 1) { "$($serviceNames[0]) is" }
 else { "services are" }
 Write-Host "🎉 Zeus Academia $serviceText ready!" -ForegroundColor Green
