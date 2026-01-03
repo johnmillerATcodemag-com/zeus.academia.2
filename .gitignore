@@ -398,3 +398,4 @@ appsettings.*.json
 *~
 
 coverage-report/
+.clockwork.json
